@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security Audit Report — 2026-06-17 07:32:33</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #242838;
+    --border: #2d3148;
+    --text: #e2e8f0;
+    --text-muted: #8892b0;
+    --accent: #7c3aed;
+    --accent2: #06b6d4;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, #1a1d27 0%, #0f1117 50%, #1a0a2e 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 70% 50%, rgba(124,58,237,.15) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+  .shield-icon {
+    font-size: 3.5rem;
+    filter: drop-shadow(0 0 16px rgba(124,58,237,.5));
+  }
+  .header-text h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(90deg, #c4b5fd, #67e8f9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header-text p {
+    color: var(--text-muted);
+    margin-top: .25rem;
+    font-size: .875rem;
+  }
+  .header-meta {
+    margin-left: auto;
+    text-align: right;
+    font-size: .8rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+
+  /* ── LAYOUT ── */
+  .main { max-width: 1200px; margin: 0 auto; padding: 2rem 3rem; }
+
+  /* ── SCORE CARD ── */
+  .score-grid {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .grade-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    gap: .5rem;
+  }
+  .grade-letter {
+    font-size: 5rem;
+    font-weight: 900;
+    color: #dc2626;
+    line-height: 1;
+    filter: drop-shadow(0 0 20px #dc262666);
+  }
+  .grade-label { font-size: .75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .1em; }
+  .risk-score { font-size: 1.1rem; font-weight: 700; color: #dc2626; }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    text-align: center;
+  }
+  .stat-card.critical { border-top: 3px solid #dc2626; }
+  .stat-card.high     { border-top: 3px solid #ea580c; }
+  .stat-card.medium   { border-top: 3px solid #ca8a04; }
+  .stat-card.info     { border-top: 3px solid #2563eb; }
+  .stat-number { font-size: 2.5rem; font-weight: 800; }
+  .stat-number.critical { color: #dc2626; }
+  .stat-number.high     { color: #ea580c; }
+  .stat-number.medium   { color: #ca8a04; }
+  .stat-number.info     { color: #2563eb; }
+  .stat-label { font-size: .75rem; color: var(--text-muted); margin-top: .25rem; text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── SECTION HEADERS ── */
+  .section { margin-bottom: 2.5rem; }
+  .section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: .75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  /* ── CHARTS ── */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+  .chart-card h3 { font-size: .85rem; color: var(--text-muted); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: .08em; }
+  canvas { width: 100% !important; }
+
+  /* ── FILTERS ── */
+  .filters {
+    display: flex;
+    gap: .75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .filter-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: .375rem 1rem;
+    border-radius: 999px;
+    font-size: .8rem;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: all .15s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  /* ── FINDINGS TABLE ── */
+  .table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .85rem;
+  }
+  thead tr { background: var(--surface2); }
+  th {
+    padding: .875rem 1rem;
+    text-align: left;
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .finding-row td {
+    padding: .75rem 1rem;
+    border-top: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .finding-row:hover td { background: var(--surface2); }
+  .finding-name {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--accent2);
+  }
+  .finding-name:hover { text-decoration: underline; }
+  .file-path { font-family: var(--font-mono); font-size: .75rem; color: var(--text-muted); }
+  .rule-id { font-family: var(--font-mono); font-size: .7rem; color: var(--text-muted); }
+  .cwe-tag { font-family: var(--font-mono); font-size: .75rem; color: #c4b5fd; }
+
+  /* ── BADGES ── */
+  .badge {
+    display: inline-block;
+    padding: .2em .7em;
+    border-radius: 999px;
+    font-size: .7rem;
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .conf-high   { color: #dc2626; font-weight: 700; font-size: .75rem; }
+  .conf-medium { color: #ca8a04; font-weight: 700; font-size: .75rem; }
+  .conf-low    { color: #6b7280; font-weight: 700; font-size: .75rem; }
+
+  /* ── DETAIL PANEL ── */
+  .hidden { display: none; }
+  .detail-row td { padding: 0; border-top: none; }
+  .detail-box {
+    background: #0a0d16;
+    border-top: 2px solid var(--accent);
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+  }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 1rem;
+  }
+  .detail-section h4 {
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--text-muted);
+    margin: 1rem 0 .4rem;
+  }
+  .detail-section h4:first-child { margin-top: 0; }
+  .detail-section p { font-size: .85rem; color: var(--text); line-height: 1.7; }
+  pre.code-bad, pre.code-good, pre.remediation {
+    background: var(--surface);
+    border-radius: 8px;
+    padding: .75rem 1rem;
+    font-family: var(--font-mono);
+    font-size: .78rem;
+    overflow-x: auto;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  pre.code-bad  { border-left: 3px solid #dc2626; }
+  pre.code-good { border-left: 3px solid #16a34a; }
+  pre.remediation { border-left: 3px solid var(--accent); color: var(--text-muted); }
+  .refs { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
+  .ref-link {
+    display: inline-block;
+    background: var(--surface2);
+    color: var(--accent2);
+    padding: .25rem .75rem;
+    border-radius: 999px;
+    font-size: .75rem;
+    text-decoration: none;
+  }
+  .ref-link:hover { background: var(--border); }
+  .owasp-tag {
+    margin-top: .75rem;
+    font-size: .75rem;
+    color: var(--accent);
+    font-family: var(--font-mono);
+  }
+
+  /* ── CAT TABLE ── */
+  .cat-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  .cat-table td { padding: .5rem .75rem; border-top: 1px solid var(--border); }
+  .cat-table tr:first-child td { border-top: none; }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-size: .75rem;
+    border-top: 1px solid var(--border);
+    margin-top: 3rem;
+  }
+
+  @media (max-width: 768px) {
+    .main { padding: 1rem; }
+    .score-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .charts-grid { grid-template-columns: 1fr; }
+    .detail-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="shield-icon">🛡️</div>
+    <div class="header-text">
+      <h1>Secure Code Audit Report</h1>
+      <p>Python Static Security Analysis · 1 file(s) · 141 lines scanned</p>
+    </div>
+    <div class="header-meta">
+      Generated: 2026-06-17 07:32:33<br>
+      Engine: SecureAudit v1.0<br>
+      Language: Python
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- RISK SCORE -->
+  <div class="score-grid">
+    <div class="grade-card">
+      <div class="grade-label">Security Grade</div>
+      <div class="grade-letter">F</div>
+      <div class="risk-score">Risk Score: 100/100</div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card critical">
+        <div class="stat-number critical">6</div>
+        <div class="stat-label">Critical</div>
+      </div>
+      <div class="stat-card high">
+        <div class="stat-number high">7</div>
+        <div class="stat-label">High</div>
+      </div>
+      <div class="stat-card medium">
+        <div class="stat-number medium">5</div>
+        <div class="stat-label">Medium</div>
+      </div>
+      <div class="stat-card info">
+        <div class="stat-number info">18</div>
+        <div class="stat-label">Total Findings</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h3>Findings by Severity</h3>
+      <canvas id="severityChart" height="220"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Findings by Category</h3>
+      <canvas id="categoryChart" height="220"></canvas>
+    </div>
+  </div>
+
+  <!-- FINDINGS TABLE -->
+  <div class="section">
+    <div class="section-title">Security Findings (18)</div>
+    <div class="filters">
+      <button class="filter-btn active" onclick="filterFindings('all', this)">All (18)</button>
+      <button class="filter-btn" onclick="filterFindings('CRITICAL', this)">Critical (6)</button>
+      <button class="filter-btn" onclick="filterFindings('HIGH', this)">High (7)</button>
+      <button class="filter-btn" onclick="filterFindings('MEDIUM', this)">Medium (5)</button>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Severity</th>
+            <th>Rule ID</th>
+            <th>Vulnerability</th>
+            <th>Category</th>
+            <th>CWE</th>
+            <th>Location</th>
+            <th>Confidence</th>
+          </tr>
+        </thead>
+        <tbody id="findingsBody">
+          
+        <tr class="finding-row" data-severity="CRITICAL" data-category="Deserialization">
+          <td><span class="badge" style="background:#dc2626">CRITICAL</span></td>
+          <td><span class="rule-id">DESER-001</span></td>
+          <td class="finding-name" onclick="toggleDetail('detail-0')">Insecure Deserialization (pickle) ▾</td>
+          <td>Deserialization</td>
+          <td class="cwe-tag">CWE-502</td>
+          <td class="file-path">vulnerable_app.py:11</td>
+          <td><span class="conf-medium">MEDIUM</span></td>
+        </tr>
+        <tr id="detail-0" class="detail-row hidden">
+          <td colspan="7">
+            <div class="detail-box">
+              <div class="detail-grid">
+                <div class="detail-section">
+                  <h4>📋 Description</h4>
+                  <p>The pickle module is used to deserialize data from untrusted sources. Maliciously crafted pickle data can execute arbitrary Python code during deserialization, leading to full system compromise.</p>
+                  <h4>📍 Vulnerable Code (line 11)</h4>
+                  <pre class="code-bad"><code>import pickle</code></pre>
+                </div>
+                <div class="detail-section">
+                  <h4>🔴 Vulnerable Pattern</h4>
+                  <pre class="code-bad"><code>session_data = pickle.loads(request.data)</code></pre>
+                  <h4>✅ Secure Alternative</h4>
+                  <pre class="code-good"><code>session_data = json.loads(request.get_data(as_text=True))</code></pre>
+                </div>
+              </div>
+              <h4>🛠️ Remediation Steps</h4>
+              <pre class="remediation">Never deserialize pickle data from untrusted sources.
+  BAD:  data = pickle.loads(request.data)
+  GOOD: data = json.loads(request.data)  # Use JSON instead
+
+Prefer JSON, MessagePack, or Protocol Buffers for data interchange.
+If pickle is unavoidable, cryptographically sign and verify data
+before deserializing using hmac.</pre>
+              <h4>📚 References</h4>
+              <div class="refs"><a href="https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/" target="_blank" class="ref-link">owasp.org</a> <a href="https://cwe.mitre.org/data/definitions/502.html" target="_blank" class="ref-link">cwe.mitre.org</a> <a href="https://docs.python.org/3/library/pickle.html#restricting-globals" target="_blank" class="ref-link">docs.python.org</a></div>
+              <div class="owasp-tag">OWASP: A08:2021 – Software and Data Integrity Failures</div>
+            </div>
+          </td>
+        </tr>
+        
+        <tr class="finding-row" data-severity="CRITICAL" data-category="Injection">
+          <td><span class="badge" style="background:#dc2626">CRITICAL</span></td>
+          <td><span class="rule-id">INJ-001</span></td>
+          <td class="finding-name" onclick="toggleDetail('detail-1')">SQL Injection ▾</td>
+          <td>Injection</td>
+          <td class="cwe-tag">CWE-89</td>
+          <td class="file-path">vulnerable_app.py:35</td>
+          <td><span class="conf-high">HIGH</span></td>
+        </tr>
+        <tr id="detail-1" class="detail-row hidden">
+          <td colspan="7">
+            <div class="detail-box">
+              <div class="detail-grid">
+                <div class="detail-section">
+                  <h4>📋 Description</h4>
+                  <p>SQL queries are constructed using string concatenation or f-strings with user-controlled input, allowing attackers to manipulate the query structure and access or modify unauthorized data.</p>
+                  <h4>📍 Vulnerable Code (line 35)</h4>
+                  <pre class="code-bad"><code>query = f"SELECT * FROM users WHERE username='{username}' AND password='{password}'"</code></pre>
+                </div>
+                <div class="detail-section">
+                  <h4>🔴 Vulnerable Pattern</h4>
+                  <pre class="code-bad"><code>cursor.execute(f"SELECT * FROM users WHERE name='{username}'")</code></pre>
+                  <h4>✅ Secure Alternative</h4>
+                  <pre class="code-good"><code>cursor.execute("SELECT * FROM users WHERE name=?", (username,))</code></pre>
+                </div>
+              </div>
+              <h4>🛠️ Remediation Steps</h4>
+              <pre class="remediation">Use parameterized queries (prepared statements) exclusively.
+  BAD:  cursor.execute(f"SELECT * FROM users WHERE id='{user_id}'")
+  GOOD: cursor.execute('SELECT * FROM users WHERE id=?', (user_id,))
+
+For ORMs (SQLAlchemy), use query filters rather than raw SQL strings.
+Apply input validation and allowlisting where possible.
+Use stored procedures with proper parameter handling.
+Apply the principle of least privilege to database accounts.</pre>
+              <h4>📚 References</h4>
+              <div class="refs"><a href="https://owasp.org/Top10/A03_2021-Injection/" target="_blank" class="ref-link">owasp.org</a> <a href="https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html" target="_blank" class="ref-link">cheatsheetseries.owasp.org</a> <a href="https://cwe.mitre.org/data/definitions/89.html" target="_blank" class="ref-link">cwe.mitre.org</a></div>
+              <div class="owasp-tag">OWASP: A03:2021 – Injection</div>
+            </div>
+          </td>
+        </tr>
+        
+        <tr class="finding-row" data-severity="CRITICAL" data-category="Injection">
+          <td><span class="badge" style="background:#dc2626">CRITICAL</span></td>
+          <td><span class="rule-id">INJ-001</span></td>
+          <td class="finding-name" onclick="toggleDetail('detail-2')">SQL Injection ▾</td>
+          <td>Injection</td>
+          <td class="cwe-tag">CWE-89</td>
+          <td class="file-path">vulnerable_app.py:36</td>
+          <td><span class="conf-medium">MEDIUM</span></td>
+        </tr>
+        <tr id="detail-2" class="detail-row hidden">
+          <td colspan="7">
+            <div class="detail-box">
+              <div class="detail-grid">
+                <div class="detail-section">
+                  <h4>📋 Description</h4>
+                  <p>SQL queries are constructed using string concatenation or f-strings with user-controlled input, allowing attackers to manipulate the query structure and access or modify unauthorized data.</p>
+                  <h4>📍 Vulnerable Code (line 36)</h4>
+                  <pre class="code-bad"><code>cursor = conn.execute(query)</code></pre>
+                </div>
+                <div class="detail-section">
+                  <h4>🔴 Vulnerable Pattern</h4>
+                  <pre class="code-bad"><code>cursor.execute(f"SELECT * FROM users WHERE name='{username}'")</code></pre>
+                  <h4>✅ Secure Alternative</h4>
+                  <pre class="code-good"><code>cursor.execute("SELECT * FROM users WHERE name=?", (username,))</code></pre>
+                </div>
+              </div>
+              <h4>🛠️ Remediation Steps</h4>
+              <pre class="remediation">Use parameterized queries (prepared statements) exclusively.
+  BAD:  cursor.execute(f"SELECT * FROM users WHERE id='{user_id}'")
+  GOOD: cursor.execute('SELECT * FROM users WHERE id=?', (user_id,))
+
+For ORMs (SQLAlchemy), use query filters rather than raw SQL strings.
+Apply input validation and allowlisting where possible.
+Use stored procedures with proper parameter handling.
+Apply the principle of least privilege to database accounts.</pre>
+              <h4>📚 References</h4>
+              <div class="refs"><a href="https://owasp.org/Top10/A03_2021-Injection/" target="_blank" class="ref-link">owasp.org</a> <a href="https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html" target="_blank" class="ref-link">cheatsheetseries.owasp.org</a> <a href="https://cwe.mitre.org/data/definitions/89.html" target="_blank" class="ref-link">cwe.mitre.org</a></div>
+              <div class="owasp-tag">OWASP: A03:2021 – Injection</div>
+            </div>
+          </td>
+        </tr>
+        
+        <tr class="finding-row" data-severity="CRITICAL" data-category="Injection">
+          <td><span class="badge" style="background:#dc2626">CRITICAL</span></td>
+          <td><span class="rule-id">INJ-002</span></td>
+          <td class="finding-name" onclick="toggleDetail('detail-3')">Command Injection ▾</td>
+          <td>Injection</td>
+          <td class="cwe-tag">CWE-78</td>
+          <td class="file-path">vulnerable_app.py:57</td>
+          <td><span class="conf-medium">MEDIUM</span></td>
+        </tr>
+        <tr id="detail-3" class="detail-row hidden">
+          <td colspan="7">
+            <div class="detail-box">
+              <div class="detail-grid">
+                <div class="detail-section">
+                  <h4>📋 Description</h4>
+                  <p>User input is passed directly to OS shell commands via subprocess, os.system, or similar functions with shell=True, enabling attackers to execute arbitrary commands on the host system.</p>
+                  <h4>📍 Vulnerable Code (line 57)</h4>
+                  <pre class="code-bad"><code>output = subprocess.check_output(f"ping -c 1 {host}", shell=True)</code></pre>
+                </div>
+                <div class="detail-section">
+                  <h4>🔴 Vulnerable Pattern</h4>
+                  <pre class="code-bad"><code>subprocess.check_output(f"ping {host}", shell=True)</code></pre>
+                  <h4>✅ Secure Alternative</h4>
+                  <pre class="code-good"><code>subprocess.check_output(["ping", "-c", "1", host])</code></pre>
+                </div>
+              </div>
+              <h4>🛠️ Remediation Steps</h4>
+              <pre class="remediation">Avoid shell=True; pass arguments as a list instead.
+  BAD:  subprocess.check_output(f'ping {host}', shell=True)
+  GOOD: subprocess.check_output(['ping', '-c', '1', host])
+
+Validate and sanitize all user inputs before use in commands.
+Use allowlists for permitted values (e.g., only known hostnames).
+Consider using Python libraries that avoid shell calls entirely.</pre>
+              <h4>📚 References</h4>
+              <div class="refs"><a href="https://owasp.org/Top10/A03_2021-Injection/" target="_blank" class="ref-link">owasp.org</a> <a href="https://cheatsheetseries.owasp.org/cheatsheets/OS_Command_Injection_Defense_Cheat_Sheet.html" target="_blank" class="ref-link">cheatsheetseries.owasp.org</a> <a href="https://cwe.mitre.org/data/definitions/78.html" target="_blank" class="ref-link">cwe.mitre.org</a></div>
+              <div class="owasp-tag">OWASP: A03:2021 – Injection</div>
+            </div>
+          </td>
+        </tr>
+        
+        <tr class="finding-row" data-severity="CRITICAL" data-category="Deserialization">
+          <td><span class="badge" style="background:#dc2626">CRITICAL</span></td>
+          <td><span class="rule-id">DESER-001</span></td>
+          <td class="finding-name" onclick="toggleDetail('detail-4')">Insecure Deserialization (pickle) ▾</td>
+          <td>Deserialization</td>
+          <td class="cwe-tag">CWE-502</td>
+          <td class="file-path">vulnerable_app.py:66</td>
+          <td><span class="conf-high">HIGH</span></td>
+        </tr>
+        <tr id="detail-4" class="detail-row hidden">
+          <td colspan="7">
+            <div class="detail-box">
+              <div class="detail-grid">
+                <div class="detail-section">
+                  <h4>📋 Description</h4>
+                  <p>The pickle module is used to deserialize data from untrusted sources. Maliciously crafted pickle data can execute arbitrary Python code during deserialization, leading to full system compromise.</p>
+                  <h4>📍 Vulnerable Code (line 66)</h4>
+                  <pre class="code-bad"><code>session_data = pickle.loads(data)</code></pre>
+                </div>
+                <div class="detail-section">
+                  <h4>🔴 Vulnerable Pattern</h4>
+                  <pre class="code-bad"><code>session_data = pickle.loads(request.data)</code></pre>
+                  <h4>✅ Secure Alternative</h4>
+                  <pre class="code-good"><code>session_data = json.loads(request.get_data(as_text=True))</code></pre>
+                </div>
+              </div>
+              <h4>🛠️ Remediation Steps</h4>
+              <pre class="remediation">Never deserialize pickle data from untrusted sources.
+  BAD:  data = pickle.loads(request.data)
+  GOOD: data = json.loads(request.data)  # Use JSON instead
+
+Prefer JSON, MessagePack, or Protocol Buffers for data interchange.
+If pickle is unavoidable, cryptographically sign and verify data
+before deserializing using hmac.</pre>
+              <h4>📚 References</h4>
+              <div class="refs"><a href="https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/" target="_blank" class="ref-link">owasp.org</a> <a href="https://cwe.mitre.org/data/definitions/502.html" target="_blank" class="ref-link">cwe.mitre.org</a> <a href="https://docs.python.org/3/library/pickle.html#restricting-globals" target="_blank" class="ref-link">docs.python.org</a></div>
+              <div class="owasp-tag">OWASP: A08:2021 – Software and Data Integrity Failures</div>
+            </div>
+          </td>
+        </tr>
+        
+        <tr class="finding-row" data-severity="CRITICAL" data-category="Injection">
+          <td><span class="badge" style="background:#dc2626">CRITICAL</span></td>
+          <td><span class="rule-id">INJ-003</span></td>
+          <td class="finding-name" onclick="toggleDetail('detail-5')">Code Injection via eval() ▾</td>
+          <td>Injection</td>
+          <td class="cwe-tag">CWE-95</td>
+          <td class="file-path">vulnerable_app.py:132</td>
+          <td><span class="conf-high">HIGH</span></td>
+        </tr>
+        <tr id="detail-5" class="detail-row hidden">
+          <td colspan="7">
+            <div class="detail-box">
+              <div class="detail-grid">
+                <div class="detail-section">
+                  <h4>📋 Description</h4>
+                  <p>The eval() or exec() function is called with user-controlled input, allowing attackers to execute arbitrary Python code in the server context.</p>
+                  <h4>📍 Vulnerable Code (line 132)</h4>
+                  <pre class="code-bad"><code>result = eval(data)   # VULNERABILITY: eval() on user input</code></pre>
+                </div>
+                <div class="detail-section">
+                  <h4>🔴 Vulnerable Pattern</h4>
+                  <pre class="code-bad"><code>result = eval(request.args.get("data"))</code></pre>
+                  <h4>✅ Secure Alternative</h4>
+                  <pre class="code-good"><code>result = ast.literal_eval(request.args.get("data"))</code></pre>
+                </div>
+              </div>
+              <h4>🛠️ Remediation Steps</h4>
+              <pre class="remediation">Never use eval() or exec() with user-supplied data.
+Replace with safer alternatives:
+  - Use ast.literal_eval() for safe expression parsing
+  - Use a proper expression parser library
+  - Implement explicit logic for expected operations
+  BAD:  result = eval(request.args.get('expr'))
+  GOOD: Use a whitelist of allowed operations with ast.literal_eval()</pre>
+              <h4>📚 References</h4>
+              <div class="refs"><a href="https://cwe.mitre.org/data/definitions/95.html" target="_blank" class="ref-link">cwe.mitre.org</a> <a href="https://docs.python.org/3/library/ast.html#ast.literal_eval" target="_blank" class="ref-link">docs.python.org</a></div>
+              <div class="owasp-tag">OWASP: A03:2021 – Injection</div>
+            </div>
+          </td>
+        </tr>
+        
+        <tr class="finding-row" data-severity="HIGH" data-category="Authentication">
+          <td><span class="badge" style="background:#ea580c">HIGH</span></td>
+          <td><span class="rule-id">AUTH-001</span></td>
+          <td class="finding-name" onclick="toggleDetail('detail-6')">Hardcoded Credentials / Secrets ▾</td>
+          <td>Authentication</td>
+          <td class="cwe-tag">CWE-798</td>
+          <td class="file-path">vulnerable_app.py:19</td>
+          <td><span class="conf-medium">MEDIUM</span></td>
+        </tr>
+        <tr id="detail-6" class="detail-row hidden">
+          <td colspan="7">
+            <div class="detail-box">
+              <div class="detail-grid">
+                <div class="detail-section">
+                  <h4>📋 Description</h4>
+                  <p>Passwords, API keys, tokens, or other secrets are hardcoded directly in source code. This exposes credentials to anyone with access to the codebase, including version control history.</p>
+                  <h4>📍 Vulnerable Code (line 19)</h4>
+                  <pre class="code-bad"><code>app.secret_key = "supersecretkey123"</code></pre>
+                </div>
+                <div class="detail-section">
+                  <h4>🔴 Vulnerable Pattern</h4>
+                  <pre class="code-bad"><code>DB_PASSWORD = "admin123"</code></pre>
+                  <h4>✅ Secure Alternative</h4>
+                  <pre class="code-good"><code>DB_PASSWORD = os.environ.get("DB_PASSWORD")</code></pre>
+                </div>
+              </div>
+              <h4>🛠️ Remediation Steps</h4>
+              <pre class="remediation">Store secrets in environment variables or a secrets manager.
+  BAD:  API_KEY = 'sk-abc123...'
+  GOOD: API_KEY = os.environ.get('API_KEY')
+
+Use tools like python-dotenv for local development.
+Use services like AWS Secrets Manager, HashiCorp Vault, or Azure Key Vault.
+Add .env files to .gitignore immediately.
+Rotate any credentials that have been committed to version control.</pre>
+              <h4>📚 References</h4>
+              <div class="refs"><a href="https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/" target="_blank" class="ref-link">owasp.org</a> <a href="https://cwe.mitre.org/data/definitions/798.html" target="_blank" class="ref-link">cwe.mitre.org</a> <a href="https://12factor.net/config" target="_blank" class="ref-link">12factor.net</a></div>
+              <div class="owasp-tag">OWASP: A07:2021 – Identification and Authentication Failures</div>
+            </div>
+          </td>
+        </tr>
+        
+        <tr class="finding-row" data-severity="HIGH" data-category="Authentication">
+          <td><span class="badge" style="background:#ea580c">HIGH</span></td>
+          <td><span class="rule-id">AUTH-001</span></td>
+          <td class="finding-name" onclick="toggleDetail('detail-7')">Hardcoded Credentials / Secrets ▾</td>
+          <td>Authentication</td>
+          <td class="cwe-tag">CWE-798</td>
+          <td class="file-path">vulnerable_app.py:22</td>
+          <td><span class="conf-medium">MEDIUM</span></td>
+        </tr>
+        <tr id="detail-7" class="detail-row hidden">
+          <td colspan="7">
+            <div class="detail-box">
+              <div class="detail-grid">
+                <div class="detail-section">
+                  <h4>📋 Description</h4>
+                  <p>Passwords, API keys, tokens, or other secrets are hardcoded directly in source code. This exposes credentials to anyone with access to the codebase, including version control history.</p>
+                  <h4>📍 Vulnerable Code (line 22)</h4>
+                  <pre class="code-bad"><code>DB_PASSWORD = "admin123"</code></pre>
+                </div>
+                <div class="detail-section">
+                  <h4>🔴 Vulnerable Pattern</h4>
+                  <pre class="code-bad"><code>DB_PASSWORD = "admin123"</code></pre>
+                  <h4>✅ Secure Alternative</h4>
+                  <pre class="code-good"><code>DB_PASSWORD = os.environ.get("DB_PASSWORD")</code></pre>
+                </div>
+              </div>
+              <h4>🛠️ Remediation Steps</h4>
+              <pre class="remediation">Store secrets in environment variables or a secrets manager.
+  BAD:  API_KEY = 'sk-abc123...'
+  GOOD: API_KEY = os.environ.get('API_KEY')
+
+Use tools like python-dotenv for local development.
+Use services like AWS Secrets Manager, HashiCorp Vault, or Azure Key Vault.
+Add .env files to .gitignore immediately.
+Rotate any credentials that have been committed to version control.</pre>
+              <h4>📚 References</h4>
+              <div class="refs"><a href="https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/" target="_blank" class="ref-link">owasp.org</a> <a href="https://cwe.mitre.org/data/definitions/798.html" target="_blank" class="ref-link">cwe.mitre.org</a> <a href="https://12factor.net/config" target="_blank" class="ref-link">12factor.net</a></div>
+              <div class="owasp-tag">OWASP: A07:2021 – Identification and Authentication Failures</div>
+            </div>
+          </td>
+        </tr>
+        
+        <tr class="finding-row" data-severity="HIGH" data-category="Authentication">
+          <td><span class="badge" style="background:#ea580c">HIGH</span></td>
+          <td><span class="rule-id">AUTH-001</span></td>
+          <td class="finding-name" onclick="toggleDetail('detail-8')">Hardcoded Credentials / Secrets ▾</td>
+          <td>Authentication</td>
+          <td class="cwe-tag">CWE-798</td>
+          <td class="file-path">vulnerable_app.py:23</td>
+          <td><span class="conf-medium">MEDIUM</span></td>
+        </tr>
+        <tr id="detail-8" class="detail-row hidden">
+          <td colspan="7">
+            <div class="detail-box">
+              <div class="detail-grid">
+                <div class="detail-section">
+                  <h4>📋 Description</h4>
+                  <p>Passwords, API keys, tokens, or other secrets are hardcoded directly in source code. This exposes credentials to anyone with access to the codebase, including version control history.</p>
+                  <h4>📍 Vulnerable Code (line 23)</h4>
+                  <pre class="code-bad"><code>API_KEY = "sk-1234567890abcdef"</code></pre>
+                </div>
+                <div class="detail-section">
+                  <h4>🔴 Vulnerable Pattern</h4>
+                  <pre class="code-bad"><code>DB_PASSWORD = "admin123"</code></pre>
+                  <h4>✅ Secure Alternative</h4>
+                  <pre class="code-good"><code>DB_PASSWORD = os.environ.get("DB_PASSWORD")</code></pre>
+                </div>
+              </div>
+              <h4>🛠️ Remediation Steps</h4>
+              <pre class="remediation">Store secrets in environment variables or a secrets manager.
+  BAD:  API_KEY = 'sk-abc123...'
+  GOOD: API_KEY = os.environ.get('API_KEY')
+
+Use tools like python-dotenv for local development.
+Use services like AWS Secrets Manager, HashiCorp Vault, or Azure Key Vault.
+Add .env files to .gitignore immediately.
+Rotate any credentials that have been committed to version control.</pre>
+              <h4>📚 References</h4>
+              <div class="refs"><a href="https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/" target="_blank" class="ref-link">owasp.org</a> <a href="https://cwe.mitre.org/data/definitions/798.html" target="_blank" class="ref-link">cwe.mitre.org</a> <a href="https://12factor.net/config" target="_blank" class="ref-link">12factor.net</a></div>
+              <div class="owasp-tag">OWASP: A07:2021 – Identification and Authentication Failures</div>
+            </div>
+          </td>
+        </tr>
+        
+        <tr class="finding-row" data-severity="HIGH" data-category="Authentication">
+          <td><span class="badge" style="background:#ea580c">HIGH</span></td>
+          <td><span class="rule-id">AUTH-001</span></td>
+          <td class="finding-name" onclick="toggleDetail('detail-9')">Hardcoded Credentials / Secrets ▾</td>
+          <td>Authentication</td>
+          <td class="cwe-tag">CWE-798</td>
+          <td class="file-path">vulnerable_app.py:35</td>
+          <td><span class="conf-high">HIGH</span></td>
+        </tr>
+        <tr id="detail-9" class="detail-row hidden">
+          <td colspan="7">
+            <div class="detail-box">
+              <div class="detail-grid">
+                <div class="detail-section">
+                  <h4>📋 Description</h4>
+                  <p>Passwords, API keys, tokens, or other secrets are hardcoded directly in source code. This exposes credentials to anyone with access to the codebase, including version control history.</p>
+                  <h4>📍 Vulnerable Code (line 35)</h4>
+                  <pre class="code-bad"><code>query = f"SELECT * FROM users WHERE username='{username}' AND password='{password}'"</code></pre>
+                </div>
+                <div class="detail-section">
+                  <h4>🔴 Vulnerable Pattern</h4>
+                  <pre class="code-bad"><code>DB_PASSWORD = "admin123"</code></pre>
+                  <h4>✅ Secure Alternative</h4>
+                  <pre class="code-good"><code>DB_PASSWORD = os.environ.get("DB_PASSWORD")</code></pre>
+                </div>
+              </div>
+              <h4>🛠️ Remediation Steps</h4>
+              <pre class="remediation">Store secrets in environment variables or a secrets manager.
+  BAD:  API_KEY = 'sk-abc123...'
+  GOOD: API_KEY = os.environ.get('API_KEY')
+
+Use tools like python-dotenv for local development.
+Use services like AWS Secrets Manager, HashiCorp Vault, or Azure Key Vault.
+Add .env files to .gitignore immediately.
+Rotate any credentials that have been committed to version control.</pre>
+              <h4>📚 References</h4>
+              <div class="refs"><a href="https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/" target="_blank" class="ref-link">owasp.org</a> <a href="https://cwe.mitre.org/data/definitions/798.html" target="_blank" class="ref-link">cwe.mitre.org</a> <a href="https://12factor.net/config" target="_blank" class="ref-link">12factor.net</a></div>
+              <div class="owasp-tag">OWASP: A07:2021 – Identification and Authentication Failures</div>
+            </div>
+          </td>
+        </tr>
+        
+        <tr class="finding-row" data-severity="HIGH" data-category="XSS">
+          <td><span class="badge" style="background:#ea580c">HIGH</span></td>
+          <td><span class="rule-id">XSS-001</span></td>
+          <td class="finding-name" onclick="toggleDetail('detail-10')">Cross-Site Scripting (XSS) ▾</td>
+          <td>XSS</td>
+          <td class="cwe-tag">CWE-79</td>
+          <td class="file-path">vulnerable_app.py:49</td>
+          <td><span class="conf-medium">MEDIUM</span></td>
+        </tr>
+        <tr id="detail-10" class="detail-row hidden">
+          <td colspan="7">
+            <div class="detail-box">
+              <div class="detail-grid">
+                <div class="detail-section">
+                  <h4>📋 Description</h4>
+                  <p>User-controlled input is rendered directly in HTML responses without proper encoding or sanitization, allowing attackers to inject malicious scripts that execute in victims' browsers.</p>
+                  <h4>📍 Vulnerable Code (line 49)</h4>
+                  <pre class="code-bad"><code>return render_template_string(template)</code></pre>
+                </div>
+                <div class="detail-section">
+                  <h4>🔴 Vulnerable Pattern</h4>
+                  <pre class="code-bad"><code>render_template_string(f"<h1>Hello {name}</h1>")</code></pre>
+                  <h4>✅ Secure Alternative</h4>
+                  <pre class="code-good"><code>return render_template("search.html", name=name)</code></pre>
+                </div>
+              </div>
+              <h4>🛠️ Remediation Steps</h4>
+              <pre class="remediation">Always escape user input before rendering in HTML.
+  BAD:  render_template_string(f'<h1>{user_input}</h1>')
+  GOOD: Use render_template() with Jinja2 auto-escaping enabled
+
+In Flask/Jinja2, auto-escaping is enabled for .html templates.
+Use Markup() only for trusted content you control.
+Set Content-Security-Policy headers to limit script execution.
+Use DOMPurify for client-side sanitization where needed.</pre>
+              <h4>📚 References</h4>
+              <div class="refs"><a href="https://owasp.org/Top10/A03_2021-Injection/" target="_blank" class="ref-link">owasp.org</a> <a href="https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html" target="_blank" class="ref-link">cheatsheetseries.owasp.org</a> <a href="https://cwe.mitre.org/data/definitions/79.html" target="_blank" class="ref-link">cwe.mitre.org</a></div>
+              <div class="owasp-tag">OWASP: A03:2021 – Injection</div>
+            </div>
+          </td>
+        </tr>
+        
+        <tr class="finding-row" data-severity="HIGH" data-category="File Security">
+          <td><span class="badge" style="background:#ea580c">HIGH</span></td>
+          <td><span class="rule-id">PATH-001</span></td>
+          <td class="finding-name" onclick="toggleDetail('detail-11')">Path Traversal ▾</td>
+          <td>File Security</td>
+          <td class="cwe-tag">CWE-22</td>
+          <td class="file-path">vulnerable_app.py:75</td>
+          <td><span class="conf-medium">MEDIUM</span></td>
+        </tr>
+        <tr id="detail-11" class="detail-row hidden">
+          <td colspan="7">
+            <div class="detail-box">
+              <div class="detail-grid">
+                <div class="detail-section">
+                  <h4>📋 Description</h4>
+                  <p>File paths constructed from user input are used without proper validation, allowing attackers to traverse the directory structure and access files outside the intended directory (e.g., /etc/passwd).</p>
+                  <h4>📍 Vulnerable Code (line 75)</h4>
+                  <pre class="code-bad"><code>with open(f"/var/app/uploads/{filename}", "r") as f:</code></pre>
+                </div>
+                <div class="detail-section">
+                  <h4>🔴 Vulnerable Pattern</h4>
+                  <pre class="code-bad"><code>open(f"/uploads/{filename}", "r")</code></pre>
+                  <h4>✅ Secure Alternative</h4>
+                  <pre class="code-good"><code>open(os.path.join("/uploads", os.path.basename(filename)), "r")</code></pre>
+                </div>
+              </div>
+              <h4>🛠️ Remediation Steps</h4>
+              <pre class="remediation">Validate and sanitize file paths rigorously.
+  BAD:  open(f'/uploads/{filename}')
+  GOOD: safe = os.path.join('/uploads', os.path.basename(filename))
+        assert safe.startswith('/uploads/')  # prevent escaping
+
+Use os.path.basename() to strip directory components.
+Use os.path.realpath() and verify the result starts with the allowed directory.
+Consider using werkzeug.utils.secure_filename() for Flask apps.</pre>
+              <h4>📚 References</h4>
+              <div class="refs"><a href="https://owasp.org/Top10/A01_2021-Broken_Access_Control/" target="_blank" class="ref-link">owasp.org</a> <a href="https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html" target="_blank" class="ref-link">cheatsheetseries.owasp.org</a> <a href="https://cwe.mitre.org/data/definitions/22.html" target="_blank" class="ref-link">cwe.mitre.org</a></div>
+              <div class="owasp-tag">OWASP: A01:2021 – Broken Access Control</div>
+            </div>
+          </td>
+        </tr>
+        
+        <tr class="finding-row" data-severity="HIGH" data-category="Authentication">
+          <td><span class="badge" style="background:#ea580c">HIGH</span></td>
+          <td><span class="rule-id">AUTH-002</span></td>
+          <td class="finding-name" onclick="toggleDetail('detail-12')">Weak Password Hashing ▾</td>
+          <td>Authentication</td>
+          <td class="cwe-tag">CWE-916</td>
+          <td class="file-path">vulnerable_app.py:82</td>
+          <td><span class="conf-medium">MEDIUM</span></td>
+        </tr>
+        <tr id="detail-12" class="detail-row hidden">
+          <td colspan="7">
+            <div class="detail-box">
+              <div class="detail-grid">
+                <div class="detail-section">
+                  <h4>📋 Description</h4>
+                  <p>Passwords are hashed using weak or broken algorithms such as MD5 or SHA1, which are vulnerable to rainbow table attacks and can be reversed quickly with modern GPU hardware.</p>
+                  <h4>📍 Vulnerable Code (line 82)</h4>
+                  <pre class="code-bad"><code>return hashlib.md5(password.encode()).hexdigest()</code></pre>
+                </div>
+                <div class="detail-section">
+                  <h4>🔴 Vulnerable Pattern</h4>
+                  <pre class="code-bad"><code>hashlib.md5(password.encode()).hexdigest()</code></pre>
+                  <h4>✅ Secure Alternative</h4>
+                  <pre class="code-good"><code>argon2.PasswordHasher().hash(password)</code></pre>
+                </div>
+              </div>
+              <h4>🛠️ Remediation Steps</h4>
+              <pre class="remediation">Use a dedicated password hashing library designed for this purpose.
+  BAD:  hashlib.md5(password.encode()).hexdigest()
+  GOOD: bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+
+Recommended libraries: bcrypt, argon2-cffi, or passlib.
+Use Argon2id as the preferred algorithm per OWASP.
+Ensure proper salting with sufficient work factors.</pre>
+              <h4>📚 References</h4>
+              <div class="refs"><a href="https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html" target="_blank" class="ref-link">cheatsheetseries.owasp.org</a> <a href="https://cwe.mitre.org/data/definitions/916.html" target="_blank" class="ref-link">cwe.mitre.org</a></div>
+              <div class="owasp-tag">OWASP: A02:2021 – Cryptographic Failures</div>
+            </div>
+          </td>
+        </tr>
+        
+        <tr class="finding-row" data-severity="MEDIUM" data-category="Authentication">
+          <td><span class="badge" style="background:#ca8a04">MEDIUM</span></td>
+          <td><span class="rule-id">AUTH-003</span></td>
+          <td class="finding-name" onclick="toggleDetail('detail-13')">Insecure Random Number Generation ▾</td>
+          <td>Authentication</td>
+          <td class="cwe-tag">CWE-338</td>
+          <td class="file-path">vulnerable_app.py:86</td>
+          <td><span class="conf-medium">MEDIUM</span></td>
+        </tr>
+        <tr id="detail-13" class="detail-row hidden">
+          <td colspan="7">
+            <div class="detail-box">
+              <div class="detail-grid">
+                <div class="detail-section">
+                  <h4>📋 Description</h4>
+                  <p>The random module is used for security-sensitive operations such as token generation or session IDs. This module is not cryptographically secure and its output can be predicted.</p>
+                  <h4>📍 Vulnerable Code (line 86)</h4>
+                  <pre class="code-bad"><code>import random</code></pre>
+                </div>
+                <div class="detail-section">
+                  <h4>🔴 Vulnerable Pattern</h4>
+                  <pre class="code-bad"><code>token = str(random.randint(100000, 999999))</code></pre>
+                  <h4>✅ Secure Alternative</h4>
+                  <pre class="code-good"><code>token = secrets.token_urlsafe(32)</code></pre>
+                </div>
+              </div>
+              <h4>🛠️ Remediation Steps</h4>
+              <pre class="remediation">Use the secrets module for all security-sensitive random generation.
+  BAD:  token = str(random.randint(100000, 999999))
+  GOOD: token = secrets.token_urlsafe(32)
+
+The secrets module is designed for generating cryptographically strong
+random numbers suitable for tokens, passwords, and similar use cases.</pre>
+              <h4>📚 References</h4>
+              <div class="refs"><a href="https://docs.python.org/3/library/secrets.html" target="_blank" class="ref-link">docs.python.org</a> <a href="https://cwe.mitre.org/data/definitions/338.html" target="_blank" class="ref-link">cwe.mitre.org</a></div>
+              <div class="owasp-tag">OWASP: A02:2021 – Cryptographic Failures</div>
+            </div>
+          </td>
+        </tr>
+        
+        <tr class="finding-row" data-severity="MEDIUM" data-category="Authentication">
+          <td><span class="badge" style="background:#ca8a04">MEDIUM</span></td>
+          <td><span class="rule-id">AUTH-003</span></td>
+          <td class="finding-name" onclick="toggleDetail('detail-14')">Insecure Random Number Generation ▾</td>
+          <td>Authentication</td>
+          <td class="cwe-tag">CWE-338</td>
+          <td class="file-path">vulnerable_app.py:90</td>
+          <td><span class="conf-medium">MEDIUM</span></td>
+        </tr>
+        <tr id="detail-14" class="detail-row hidden">
+          <td colspan="7">
+            <div class="detail-box">
+              <div class="detail-grid">
+                <div class="detail-section">
+                  <h4>📋 Description</h4>
+                  <p>The random module is used for security-sensitive operations such as token generation or session IDs. This module is not cryptographically secure and its output can be predicted.</p>
+                  <h4>📍 Vulnerable Code (line 90)</h4>
+                  <pre class="code-bad"><code>return str(random.randint(100000, 999999))</code></pre>
+                </div>
+                <div class="detail-section">
+                  <h4>🔴 Vulnerable Pattern</h4>
+                  <pre class="code-bad"><code>token = str(random.randint(100000, 999999))</code></pre>
+                  <h4>✅ Secure Alternative</h4>
+                  <pre class="code-good"><code>token = secrets.token_urlsafe(32)</code></pre>
+                </div>
+              </div>
+              <h4>🛠️ Remediation Steps</h4>
+              <pre class="remediation">Use the secrets module for all security-sensitive random generation.
+  BAD:  token = str(random.randint(100000, 999999))
+  GOOD: token = secrets.token_urlsafe(32)
+
+The secrets module is designed for generating cryptographically strong
+random numbers suitable for tokens, passwords, and similar use cases.</pre>
+              <h4>📚 References</h4>
+              <div class="refs"><a href="https://docs.python.org/3/library/secrets.html" target="_blank" class="ref-link">docs.python.org</a> <a href="https://cwe.mitre.org/data/definitions/338.html" target="_blank" class="ref-link">cwe.mitre.org</a></div>
+              <div class="owasp-tag">OWASP: A02:2021 – Cryptographic Failures</div>
+            </div>
+          </td>
+        </tr>
+        
+        <tr class="finding-row" data-severity="MEDIUM" data-category="Information Exposure">
+          <td><span class="badge" style="background:#ca8a04">MEDIUM</span></td>
+          <td><span class="rule-id">INFO-001</span></td>
+          <td class="finding-name" onclick="toggleDetail('detail-15')">Sensitive Information Disclosure ▾</td>
+          <td>Information Exposure</td>
+          <td class="cwe-tag">CWE-200</td>
+          <td class="file-path">vulnerable_app.py:97</td>
+          <td><span class="conf-medium">MEDIUM</span></td>
+        </tr>
+        <tr id="detail-15" class="detail-row hidden">
+          <td colspan="7">
+            <div class="detail-box">
+              <div class="detail-grid">
+                <div class="detail-section">
+                  <h4>📋 Description</h4>
+                  <p>The application exposes environment variables, stack traces, or other sensitive system information to end users, aiding attackers in reconnaissance and exploitation.</p>
+                  <h4>📍 Vulnerable Code (line 97)</h4>
+                  <pre class="code-bad"><code>env_vars = dict(os.environ)</code></pre>
+                </div>
+                <div class="detail-section">
+                  <h4>🔴 Vulnerable Pattern</h4>
+                  <pre class="code-bad"><code>return f"Error: {str(e)}", 500</code></pre>
+                  <h4>✅ Secure Alternative</h4>
+                  <pre class="code-good"><code>logger.exception("Error"); return "An error occurred.", 500</code></pre>
+                </div>
+              </div>
+              <h4>🛠️ Remediation Steps</h4>
+              <pre class="remediation">Never expose internal details in error responses.
+  BAD:  return f'Error: {str(e)}', 500
+  GOOD: Log the error server-side; return a generic message
+
+Use structured logging (e.g., Python logging module) to record errors.
+Return generic error messages to clients: 'An error occurred.'
+Never return os.environ contents to end users.</pre>
+              <h4>📚 References</h4>
+              <div class="refs"><a href="https://owasp.org/Top10/A02_2021-Cryptographic_Failures/" target="_blank" class="ref-link">owasp.org</a> <a href="https://cwe.mitre.org/data/definitions/200.html" target="_blank" class="ref-link">cwe.mitre.org</a></div>
+              <div class="owasp-tag">OWASP: A02:2021 – Cryptographic Failures</div>
+            </div>
+          </td>
+        </tr>
+        
+        <tr class="finding-row" data-severity="MEDIUM" data-category="Configuration">
+          <td><span class="badge" style="background:#ca8a04">MEDIUM</span></td>
+          <td><span class="rule-id">CONF-002</span></td>
+          <td class="finding-name" onclick="toggleDetail('detail-16')">Open Redirect ▾</td>
+          <td>Configuration</td>
+          <td class="cwe-tag">CWE-601</td>
+          <td class="file-path">vulnerable_app.py:124</td>
+          <td><span class="conf-medium">MEDIUM</span></td>
+        </tr>
+        <tr id="detail-16" class="detail-row hidden">
+          <td colspan="7">
+            <div class="detail-box">
+              <div class="detail-grid">
+                <div class="detail-section">
+                  <h4>📋 Description</h4>
+                  <p>The application redirects users to a URL supplied by user input without validating that the target is within the trusted domain, enabling phishing and credential-theft attacks.</p>
+                  <h4>📍 Vulnerable Code (line 124)</h4>
+                  <pre class="code-bad"><code>return redirect(url)</code></pre>
+                </div>
+                <div class="detail-section">
+                  <h4>🔴 Vulnerable Pattern</h4>
+                  <pre class="code-bad"><code>return redirect(request.args.get("url"))</code></pre>
+                  <h4>✅ Secure Alternative</h4>
+                  <pre class="code-good"><code>return redirect(url_for("home"))</code></pre>
+                </div>
+              </div>
+              <h4>🛠️ Remediation Steps</h4>
+              <pre class="remediation">Validate redirect targets against an allowlist of trusted URLs.
+  BAD:  return redirect(request.args.get('url'))
+  GOOD: if url_is_safe(url, allowed_hosts=['mysite.com']):
+            return redirect(url)
+
+Use urllib.parse to extract and validate the netloc component.
+Prefer relative URLs for redirects within the same application.</pre>
+              <h4>📚 References</h4>
+              <div class="refs"><a href="https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html" target="_blank" class="ref-link">cheatsheetseries.owasp.org</a> <a href="https://cwe.mitre.org/data/definitions/601.html" target="_blank" class="ref-link">cwe.mitre.org</a></div>
+              <div class="owasp-tag">OWASP: A01:2021 – Broken Access Control</div>
+            </div>
+          </td>
+        </tr>
+        
+        <tr class="finding-row" data-severity="MEDIUM" data-category="Configuration">
+          <td><span class="badge" style="background:#ca8a04">MEDIUM</span></td>
+          <td><span class="rule-id">CONF-001</span></td>
+          <td class="finding-name" onclick="toggleDetail('detail-17')">Debug Mode Enabled ▾</td>
+          <td>Configuration</td>
+          <td class="cwe-tag">CWE-489</td>
+          <td class="file-path">vulnerable_app.py:141</td>
+          <td><span class="conf-medium">MEDIUM</span></td>
+        </tr>
+        <tr id="detail-17" class="detail-row hidden">
+          <td colspan="7">
+            <div class="detail-box">
+              <div class="detail-grid">
+                <div class="detail-section">
+                  <h4>📋 Description</h4>
+                  <p>The application runs with debug mode enabled, which can expose detailed stack traces, an interactive debugger, and internal configuration details to attackers.</p>
+                  <h4>📍 Vulnerable Code (line 141)</h4>
+                  <pre class="code-bad"><code>app.run(debug=True, host="0.0.0.0", port=5000)</code></pre>
+                </div>
+                <div class="detail-section">
+                  <h4>🔴 Vulnerable Pattern</h4>
+                  <pre class="code-bad"><code>app.run(debug=True, host="0.0.0.0")</code></pre>
+                  <h4>✅ Secure Alternative</h4>
+                  <pre class="code-good"><code>app.run(debug=False)</code></pre>
+                </div>
+              </div>
+              <h4>🛠️ Remediation Steps</h4>
+              <pre class="remediation">Disable debug mode in production environments.
+  BAD:  app.run(debug=True)
+  GOOD: app.run(debug=os.environ.get('FLASK_DEBUG', 'False') == 'True')
+
+Use environment variables to control debug state.
+Configure proper error logging to a secure log file instead.
+Set up custom error pages that don't reveal implementation details.</pre>
+              <h4>📚 References</h4>
+              <div class="refs"><a href="https://owasp.org/Top10/A05_2021-Security_Misconfiguration/" target="_blank" class="ref-link">owasp.org</a> <a href="https://cwe.mitre.org/data/definitions/489.html" target="_blank" class="ref-link">cwe.mitre.org</a></div>
+              <div class="owasp-tag">OWASP: A05:2021 – Security Misconfiguration</div>
+            </div>
+          </td>
+        </tr>
+        
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CATEGORY BREAKDOWN -->
+  <div class="section">
+    <div class="section-title">Category Breakdown</div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+      <table class="cat-table">
+        <thead>
+          <tr style="background:var(--surface2)">
+            <th style="padding:.875rem 1rem;text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted)">Category</th>
+            <th style="padding:.875rem 1rem;text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted)">Count</th>
+          </tr>
+        </thead>
+        <tbody><tr><td>Authentication</td><td>7</td></tr><tr><td>Injection</td><td>4</td></tr><tr><td>Deserialization</td><td>2</td></tr><tr><td>Configuration</td><td>2</td></tr><tr><td>XSS</td><td>1</td></tr><tr><td>File Security</td><td>1</td></tr><tr><td>Information Exposure</td><td>1</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- REMEDIATION CHECKLIST -->
+  <div class="section">
+    <div class="section-title">Remediation Priority Checklist</div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;">
+      <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem;">Address findings in this priority order:</p>
+      <ol style="padding-left:1.5rem;font-size:.875rem;line-height:2;">
+        <li><strong style="color:#dc2626">CRITICAL first:</strong> SQL Injection, Command Injection, Code Injection (eval), Insecure Deserialization</li>
+        <li><strong style="color:#ea580c">HIGH next:</strong> XSS, Hardcoded Secrets, Weak Password Hashing, Path Traversal</li>
+        <li><strong style="color:#ca8a04">MEDIUM then:</strong> Debug Mode, Open Redirect, Insecure Random, Information Disclosure</li>
+        <li><strong style="color:#2563eb">LOW/INFO:</strong> Code quality issues, security best practice improvements</li>
+      </ol>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  SecureAudit · Python Static Security Analysis Tool · 2026-06-17 07:32:33 ·
+  Findings are potential vulnerabilities and require manual verification.
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+const chartDefaults = {
+  plugins: {
+    legend: { labels: { color: '#8892b0', font: { size: 12 } } },
+  },
+  responsive: true,
+  maintainAspectRatio: true,
+};
+
+const sevData = {"labels": ["CRITICAL", "HIGH", "MEDIUM"], "values": [6, 7, 5], "colors": ["#dc2626", "#ea580c", "#ca8a04"]};
+new Chart(document.getElementById('severityChart'), {
+  type: 'doughnut',
+  data: {
+    labels: sevData.labels,
+    datasets: [{ data: sevData.values, backgroundColor: sevData.colors, borderWidth: 2, borderColor: '#1a1d27' }]
+  },
+  options: { ...chartDefaults, cutout: '60%' }
+});
+
+const catData = {"labels": ["Deserialization", "Injection", "Authentication", "XSS", "File Security", "Information Exposure", "Configuration"], "values": [2, 4, 7, 1, 1, 1, 2]};
+new Chart(document.getElementById('categoryChart'), {
+  type: 'bar',
+  data: {
+    labels: catData.labels,
+    datasets: [{
+      data: catData.values,
+      backgroundColor: '#7c3aed88',
+      borderColor: '#7c3aed',
+      borderWidth: 2,
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    ...chartDefaults,
+    scales: {
+      x: { ticks: { color: '#8892b0' }, grid: { color: '#2d3148' } },
+      y: { ticks: { color: '#8892b0', stepSize: 1 }, grid: { color: '#2d3148' }, beginAtZero: true }
+    },
+    plugins: { legend: { display: false } }
+  }
+});
+
+function toggleDetail(id) {
+  const row = document.getElementById(id);
+  row.classList.toggle('hidden');
+}
+
+function filterFindings(severity, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.finding-row').forEach(row => {
+    const isMatch = severity === 'all' || row.dataset.severity === severity;
+    row.style.display = isMatch ? '' : 'none';
+    // Also hide associated detail row
+    const next = row.nextElementSibling;
+    if (next && next.classList.contains('detail-row')) {
+      if (!isMatch) next.classList.add('hidden');
+    }
+  });
+}
+</script>
+</body>
+</html>
